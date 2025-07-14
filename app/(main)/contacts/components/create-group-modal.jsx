@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -44,7 +43,7 @@ const groupSchema = z.object({
 export function CreateGroupModal({ isOpen, onClose, onSuccess }) {
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [commandOpen, setCommandOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const { data: currentUser } = useConvexQuery(api.users.getCurrentUser);
   const createGroup = useConvexMutation(api.contacts.createGroup);
@@ -70,7 +69,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }) {
     if (!selectedMembers.some((m) => m.id === user.id)) {
       setSelectedMembers([...selectedMembers, user]);
     }
-    setCommandOpen(false);
+    setOpen(false);
   };
 
   const removeMember = (userId) => {
@@ -186,7 +185,13 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }) {
               ))}
 
               {/* Add member button with dropdown */}
-              <Popover open={commandOpen} onOpenChange={setCommandOpen}>
+              <Popover
+                open={open}
+                onOpenChange={(nextOpen) => {
+                  setOpen(nextOpen);
+                  if (!nextOpen) setSearchQuery("");
+                }}
+              >
                 <PopoverTrigger asChild>
                   <Button
                     type="button"

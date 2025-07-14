@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -197,7 +198,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }) {
                     Add member
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="p-0" align="start" side="bottom">
+                <PopoverContent className="p-0" align="start" side="bottom" tabIndex={0}>
                   <Command>
                     <CommandInput
                       placeholder="Search by name or email..."

@@ -41,13 +41,11 @@ const groupSchema = z.object({
 });
 
 export function CreateGroupModal({ isOpen, onClose, onSuccess }) {
-  const [selectedMembers, setSelectedMembers] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  // --- Begin ParticipantSelector logic ---
   const [open, setOpen] = useState(false);
-
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedMembers, setSelectedMembers] = useState([]);
   const { data: currentUser } = useConvexQuery(api.users.getCurrentUser);
-  const createGroup = useConvexMutation(api.contacts.createGroup);
-  // Search for users
   const { data: searchResults, isLoading: isSearching } = useConvexQuery(
     api.users.searchUsers,
     { query: searchQuery }
@@ -55,7 +53,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }) {
 
   // Add a member
   const addMember = (user) => {
-    // Check if already added
     if (selectedMembers.some((m) => m.id === user.id) || user.id === currentUser?._id) {
       return;
     }
@@ -66,12 +63,12 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }) {
 
   // Remove a member
   const removeMember = (userId) => {
-    // Don't allow removing yourself
     if (userId === currentUser?._id) {
       return;
     }
     setSelectedMembers(selectedMembers.filter((m) => m.id !== userId));
   };
+  // --- End ParticipantSelector logic ---
 
   const {
     register,
@@ -195,7 +192,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }) {
               ))}
 
               {/* Add member button with dropdown */}
-              {currentUser && (
+              {selectedMembers.length < 20 && (
                 <Popover open={open} onOpenChange={setOpen}>
                   <PopoverTrigger asChild>
                     <Button
@@ -209,11 +206,12 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }) {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="p-0" align="start">
-                    <Command
-                      value={searchQuery}
-                      onValueChange={setSearchQuery}
-                    >
-                      <CommandInput placeholder="Search by name or email..." />
+                    <Command>
+                      <CommandInput
+                        placeholder="Search by name or email..."
+                        value={searchQuery}
+                        onValueChange={setSearchQuery}
+                      />
                       <CommandList>
                         <CommandEmpty>
                           {searchQuery.length < 2 ? (

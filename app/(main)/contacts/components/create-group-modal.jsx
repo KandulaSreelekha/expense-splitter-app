@@ -47,10 +47,31 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }) {
 
   const { data: currentUser } = useConvexQuery(api.users.getCurrentUser);
   const createGroup = useConvexMutation(api.contacts.createGroup);
+  // Search for users
   const { data: searchResults, isLoading: isSearching } = useConvexQuery(
     api.users.searchUsers,
     { query: searchQuery }
   );
+
+  // Add a member
+  const addMember = (user) => {
+    // Check if already added
+    if (selectedMembers.some((m) => m.id === user.id) || user.id === currentUser?._id) {
+      return;
+    }
+    setSelectedMembers([...selectedMembers, user]);
+    setOpen(false);
+    setSearchQuery("");
+  };
+
+  // Remove a member
+  const removeMember = (userId) => {
+    // Don't allow removing yourself
+    if (userId === currentUser?._id) {
+      return;
+    }
+    setSelectedMembers(selectedMembers.filter((m) => m.id !== userId));
+  };
 
   const {
     register,
@@ -64,17 +85,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }) {
       description: "",
     },
   });
-
-  const addMember = (user) => {
-    if (!selectedMembers.some((m) => m.id === user.id)) {
-      setSelectedMembers([...selectedMembers, user]);
-    }
-    setOpen(false);
-  };
-
-  const removeMember = (userId) => {
-    setSelectedMembers(selectedMembers.filter((m) => m.id !== userId));
-  };
 
   const onSubmit = async (data) => {
     try {
@@ -143,7 +153,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }) {
             <div className="flex flex-wrap gap-2 mb-2">
               {/* Current user (always included) */}
               {currentUser && (
-                <Badge variant="secondary" className="px-3 py-1">
+                <Badge variant="secondary" className="px-3 py-1 flex items-center gap-2">
                   <Avatar className="h-5 w-5 mr-2">
                     <AvatarImage src={currentUser.imageUrl} />
                     <AvatarFallback>
@@ -162,7 +172,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }) {
                 <Badge
                   key={member.id}
                   variant="secondary"
-                  className="px-3 py-1"
+                  className="px-3 py-1 flex items-center gap-2"
                 >
                   <Avatar className="h-5 w-5 mr-2">
                     <AvatarImage src={member.imageUrl} />
@@ -185,75 +195,71 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }) {
               ))}
 
               {/* Add member button with dropdown */}
-              <Popover
-                open={open}
-                onOpenChange={(nextOpen) => {
-                  setOpen(nextOpen);
-                  if (!nextOpen) setSearchQuery("");
-                }}
-              >
-                <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-8 gap-1 text-xs"
-                  >
-                    <UserPlus className="h-3.5 w-3.5" />
-                    Add member
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="p-0" align="start" side="bottom" tabIndex={0}>
-                  <Command>
-                    <CommandInput
-                      placeholder="Search by name or email..."
-                      value={searchQuery}
-                      onValueChange={setSearchQuery}
-                    />
-                    <CommandList>
-                      <CommandEmpty>
-                        {searchQuery.length < 2 ? (
-                          <p className="py-3 px-4 text-sm text-center text-muted-foreground">
-                            Type at least 2 characters to search
-                          </p>
-                        ) : isSearching ? (
-                          <p className="py-3 px-4 text-sm text-center text-muted-foreground">
-                            Searching...
-                          </p>
-                        ) : (
-                          <p className="py-3 px-4 text-sm text-center text-muted-foreground">
-                            No users found
-                          </p>
-                        )}
-                      </CommandEmpty>
-                      <CommandGroup heading="Users">
-                        {searchResults?.map((user) => (
-                          <CommandItem
-                            key={user.id}
-                            value={user.username + user.email}
-                            onSelect={() => addMember(user)}
-                          >
-                            <div className="flex items-center gap-2">
-                              <Avatar className="h-6 w-6">
-                                <AvatarImage src={user.imageUrl} />
-                                <AvatarFallback>
-                                  {user.username?.charAt(0) || user.email?.charAt(0) || "?"}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex flex-col">
-                                <span className="text-sm font-semibold">{user.username}</span>
-                                <span className="text-xs text-muted-foreground">
-                                  {user.email}
-                                </span>
+              {currentUser && (
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 gap-1 text-xs"
+                    >
+                      <UserPlus className="h-3.5 w-3.5" />
+                      Add member
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0" align="start">
+                    <Command>
+                      <CommandInput
+                        placeholder="Search by name or email..."
+                        value={searchQuery}
+                        onValueChange={setSearchQuery}
+                      />
+                      <CommandList>
+                        <CommandEmpty>
+                          {searchQuery.length < 2 ? (
+                            <p className="py-3 px-4 text-sm text-center text-muted-foreground">
+                              Type at least 2 characters to search
+                            </p>
+                          ) : isSearching ? (
+                            <p className="py-3 px-4 text-sm text-center text-muted-foreground">
+                              Searching...
+                            </p>
+                          ) : (
+                            <p className="py-3 px-4 text-sm text-center text-muted-foreground">
+                              No users found
+                            </p>
+                          )}
+                        </CommandEmpty>
+                        <CommandGroup heading="Users">
+                          {searchResults?.map((user) => (
+                            <CommandItem
+                              key={user.id}
+                              value={user.username + user.email}
+                              onSelect={() => addMember(user)}
+                            >
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6">
+                                  <AvatarImage src={user.imageUrl} />
+                                  <AvatarFallback>
+                                    {user.username?.charAt(0) || user.email?.charAt(0) || "?"}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-semibold">{user.username}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {user.email}
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
             </div>
             {selectedMembers.length === 0 && (
               <p className="text-sm text-amber-600">

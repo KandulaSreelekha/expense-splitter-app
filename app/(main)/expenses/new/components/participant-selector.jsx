@@ -90,70 +90,57 @@ export function ParticipantSelector({ participants, onParticipantsChange }) {
             )}
           </Badge>
         ))}
-
-        {participants.length < 2 && (
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 gap-1 text-xs"
-                type="button"
-              >
-                <UserPlus className="h-3.5 w-3.5" />
-                Add person
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="p-0" align="start">
-              <Command>
-                <CommandInput
-                  placeholder="Search by email..."
-                  value={searchQuery}
-                  onValueChange={setSearchQuery}
-                />
-                <CommandList>
-                  <CommandEmpty>
-                    {searchQuery.length < 2 ? (
-                      <p className="py-3 px-4 text-sm text-center text-muted-foreground">
-                        Type at least 2 characters to search
-                      </p>
-                    ) : isLoading ? (
-                      <p className="py-3 px-4 text-sm text-center text-muted-foreground">
-                        Searching...
-                      </p>
-                    ) : (
-                      <p className="py-3 px-4 text-sm text-center text-muted-foreground">
-                        No users found
-                      </p>
-                    )}
-                  </CommandEmpty>
-                  <CommandGroup heading="Users">
-                    {searchResults?.map((user) => (
-                      <CommandItem
-                        key={user.id}
-                        value={user.email}
-                        onSelect={() => addParticipant(user)}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={user.imageUrl} />
-                            <AvatarFallback>
-                              {(user.email && user.email.charAt(0)) || "?"}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex flex-col">
-                            <span className="text-sm">{user.email || "Unknown"}</span>
-                          </div>
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        )}
       </div>
+      {/* Improved add member UI */}
+      {participants.length < 2 && (
+        <div className="mt-2 w-full max-w-md">
+          <input
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search by email or username..."
+            className="border rounded px-2 py-1 text-sm w-full"
+          />
+          {searchQuery.length >= 2 && (
+            <div className="bg-white border rounded-lg shadow p-2 space-y-1 mt-1">
+              {isLoading && (
+                <div className="py-2 text-center text-muted-foreground text-sm">Searching...</div>
+              )}
+              {!isLoading && searchResults?.length === 0 && (
+                <div className="py-2 text-center text-muted-foreground text-sm">No users found</div>
+              )}
+              {!isLoading && searchResults?.map(user => (
+                (participants.some(p => p.id === user.id) || user.id === currentUser?._id) ? null : (
+                  <div
+                    key={user.id}
+                    className="flex items-center justify-between px-2 py-2 rounded hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.imageUrl} />
+                        <AvatarFallback>
+                          {user.username?.charAt(0) || user.email?.charAt(0) || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold">{user.username}</span>
+                        <span className="text-xs text-muted-foreground">{user.email}</span>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="text-xs px-3 py-1"
+                      onClick={() => addParticipant(user)}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                )
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

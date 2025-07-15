@@ -214,7 +214,6 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }) {
                         placeholder="Search by name or email..."
                         value={searchQuery}
                         onValueChange={setSearchQuery}
-                        autoFocus
                       />
                       <CommandList>
                         <CommandEmpty>

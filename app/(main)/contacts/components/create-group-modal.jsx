@@ -209,12 +209,11 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }) {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="p-0" align="start">
-                    <Command>
-                      <CommandInput
-                        placeholder="Search by name or email..."
-                        value={searchQuery}
-                        onValueChange={setSearchQuery}
-                      />
+                    <Command
+                      value={searchQuery}
+                      onValueChange={setSearchQuery}
+                    >
+                      <CommandInput placeholder="Search by name or email..." />
                       <CommandList>
                         <CommandEmpty>
                           {searchQuery.length < 2 ? (

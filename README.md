@@ -21,7 +21,7 @@
 
 - **Frontend:** React, Next.js, shadcn/ui, Tailwind CSS
 - **Backend:** Convex (serverless database and functions)
-- **Authentication:** Clerk (or similar, depending on your setup)
+- **Authentication:** Clerk
 - **Deployment:** Vercel
 
 ---
